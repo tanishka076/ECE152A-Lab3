@@ -1,59 +1,67 @@
-module counter_tb;
+module ucsbece152a_counter_tb();
 
-logic clk_i;
-logic rst_i;
-logic en_i;
-logic dir_i;
-logic [2:0] count_o;
+parameter WIDTH = 3;
 
+logic clk = 0;
+always #(10) clk = ~clk;
 
-ucsbece152a_counter dut (
-    .clk_i(clk_i),
-    .rst_i(rst_i),
-    .en_i(en_i),
-    .dir_i(dir_i),
-    .count_o(count_o)
+logic rst;
+logic enable;
+logic dir;
+logic [WIDTH-1:0] count;
+
+ucsbece152a_counter #(
+    .WIDTH(WIDTH)
+) DUT (
+    .clk(clk),
+    .rst(rst),
+    .count_o(count),
+    .enable_i(enable),
+    .dir_i(dir)
 );
 
-
-always #5 clk_i = ~clk_i;
-
+integer i;
 initial begin
+    $display("Begin simulation.");
 
-    
-    clk_i = 0;
-    rst_i = 1;
-    en_i  = 0;
-    dir_i = 1;
+    rst = 1;
+    enable = 1;
+    dir = 0;
+    @(negedge clk);
 
-    // Apply reset
-    #10;
-    rst_i = 0;
+    rst = 0;
 
-   
-    en_i = 1;
-    dir_i = 1;
+    for (i = 0; i < 16; i++) begin
+        if (count != i%(2**WIDTH))
+            $display("Error: expected %d, received %d", $unsigned(i), count);
+        @(negedge clk);
+    end
 
-    #80;
+    rst = 1;
+    @(negedge clk);
 
+    if (count != 0)
+        $display("Error: expected %d, received %d", 0, count);
 
-    dir_i = 0;
+    rst = 0;
 
-    #80;
+    enable = 0;
+    @(negedge clk);
+    @(negedge clk);
+    @(negedge clk);
 
+    enable = 1;
+    dir = 1;
+    @(negedge clk);
 
-    en_i = 0;
+    for (i = 7; i >= 0; i--) begin
+        if (count != i[WIDTH-1:0])
+            $display("Error: expected %d, received %d", i, count);
+        @(negedge clk);
+    end
 
-    #40;
-
- 
-    en_i = 1;
-    dir_i = 1;
-
-    #80;
-
-    $finish;
-
+    $display("End simulation.");
+    $stop;
 end
 
 endmodule
