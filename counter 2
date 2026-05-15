@@ -1,0 +1,39 @@
+module ucsbece152a_counter (
+    input  logic       clk_i,
+    input  logic       rst_i,
+    input  logic       en_i,
+    input  logic       dir_i,
+    output logic [2:0] count_o
+);
+
+always_ff @(posedge clk_i or posedge rst_i) begin
+
+    if (rst_i) begin
+        count_o <= 3'b000;
+    end
+
+    else if (en_i) begin
+
+        // Count Up
+        if (dir_i) begin
+
+            if (count_o == 3'b111)
+                count_o <= 3'b000;
+            else
+                count_o <= count_o + 3'b001;
+
+        end
+
+        // Count Down
+        else begin
+
+            if (count_o == 3'b000)
+                count_o <= 3'b111;
+            else
+                count_o <= count_o - 3'b001;
+
+        end
+    end
+end
+
+endmodule
