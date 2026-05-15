@@ -1,39 +1,77 @@
-module ucsbece152a_counter (
-    input  logic       clk_i,
-    input  logic       rst_i,
-    input  logic       en_i,
-    input  logic       dir_i,
-    output logic [2:0] count_o
-);
+module ucsbece152a_counter_tb();
 
-always_ff @(posedge clk_i or posedge rst_i) begin
+    // Parameters
+    parameter WIDTH = 3;
 
-    if (rst_i) begin
-        count_o <= 3'b000;
-    end
+    // Create clock signal
+    logic clk = 0;
+    always #(10) clk = ~clk; // flip clk every 10 timesteps
 
-    else if (en_i) begin
+    // Instantiate counter nets
+    logic rst;
+    logic [WIDTH-1:0] count;
 
-        // Count Up
-        if (dir_i) begin
+    // Instantiate the "Design Under Test"
+    ucsbece152a_counter #(
+        .WIDTH(WIDTH)
+    ) DUT (
+        .clk_i(clk),
+        .rst_i(rst),
+        .count_o(count),
+        // part 2
+        .enable_i(1'b1),
+        .dir_i(1'b0)
+    );
 
-            if (count_o == 3'b111)
-                count_o <= 3'b000;
-            else
-                count_o <= count_o + 3'b001;
+    // Simulation
+    integer i;
+    initial begin
+        $display("Begin simulation.");
+        //\\ -------------------------- \\//
 
+        // Initialize counter
+        rst = 1;
+        @(negedge clk);
+
+        // Turn off rst to enable counting
+        rst = 0;
+
+        // Count 16 times
+        for (i = 0; i < 16; i++) begin
+            if (count != i%(2**WIDTH))
+                $display(
+                    "Error: expected %d, received %d",
+                    $unsigned(i), count
+                );
+            @(negedge clk);
         end
 
-        // Count Down
-        else begin
+        // Test reset
+        rst = 1;
+        @(negedge clk);
+        if (count != 0)
+            $display("Error: expected %d, received %d", 0, count);
 
-            if (count_o == 3'b000)
-                count_o <= 3'b111;
-            else
-                count_o <= count_o - 3'b001;
+        rst = 0;
 
+        // ================================
+        // Part 2: Test counting down
+        // ================================
+
+        @(negedge clk);
+
+        for (i = 7; i >= 0; i--) begin
+            if (count != i[WIDTH-1:0])
+                $display(
+                    "Error: expected %d, received %d",
+                    i, count
+                );
+            @(negedge clk);
         end
+
+        //\\ -------------------------- \\//
+        $display("End simulation.");
+        $stop;
     end
-end
 
 endmodule
