@@ -1,0 +1,94 @@
+/*
+ * Copyright (c) 2026, University of California; Santa Barbara
+ * Distribution prohibited. All rights reserved.
+ *
+ * File: ucsbece152a_counter_tb.sv
+ * Description: Starter file for counter testbench.
+ */
+
+module ucsbece152a_counter_tb();
+
+// Parameters
+parameter WIDTH = 3;
+
+// Create clock signal
+logic clk = 0;
+always #(10) clk = ~clk; // flip `clk` every 10 timesteps
+
+// Instantiate counter nets
+logic rst;
+logic enable_i;
+logic dir_i;
+logic [WIDTH-1:0] count;
+
+// Instantiate the "Design Under Test"
+ucsbece152a_counter #(
+    .WIDTH(WIDTH)
+) DUT (
+    .clk(clk),
+    .rst(rst),
+    .count_o(count),
+    .enable_i(enable_i),
+    .dir_i(dir_i)
+);
+
+// Simulation
+integer i;
+
+initial begin
+
+    $display("Begin simulation.");
+
+    //\\ =========================== \\//
+
+    // Initialize signals
+    rst = 1;
+    enable_i = 1'b1;
+    dir_i = 1'b0;
+
+    @(negedge clk);
+
+    // Release reset
+    rst = 0;
+
+    // Count UP
+    for (i = 0; i < 8; i++) begin
+        @(negedge clk);
+    end
+
+    // Count DOWN
+    dir_i = 1'b1;
+
+    for (i = 0; i < 8; i++) begin
+        @(negedge clk);
+    end
+
+    // Disable counter
+    enable_i = 1'b0;
+
+    for (i = 0; i < 4; i++) begin
+        @(negedge clk);
+    end
+
+    // Re-enable counter
+    enable_i = 1'b1;
+    dir_i = 1'b0;
+
+    for (i = 0; i < 8; i++) begin
+        @(negedge clk);
+    end
+
+    // Test reset again
+    rst = 1;
+    @(negedge clk);
+
+    rst = 0;
+
+    //\\ =========================== \\//
+
+    $display("End simulation.");
+    $stop;
+
+end
+
+endmodule
