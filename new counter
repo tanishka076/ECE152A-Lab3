@@ -1,0 +1,31 @@
+module ucsbece152a_counter #(
+    parameter WIDTH = 3
+) (
+    input  logic clk,
+    input  logic rst,
+    output logic [WIDTH-1:0] count_o,
+    input  logic enable_i,
+    input  logic dir_i
+);
+
+always_ff @(posedge clk or posedge rst) begin
+    if (rst) begin
+        count_o <= '0;
+    end
+    else if (enable_i) begin
+        if (dir_i) begin
+            if (count_o == '0)
+                count_o <= (2**WIDTH) - 1;
+            else
+                count_o <= count_o - 1'b1;
+        end
+        else begin
+            if (count_o == (2**WIDTH) - 1)
+                count_o <= '0;
+            else
+                count_o <= count_o + 1'b1;
+        end
+    end
+end
+
+endmodule
